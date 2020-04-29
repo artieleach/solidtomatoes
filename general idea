@@ -1,0 +1,10 @@
+everything i want the cards to be able to do:
+
+move to different board positions
+update their variables (symbol, value, position)
+report when they are picked up/dropped
+
+everything i want the board to be able to do:
+everything else
+
+

@@ -1,0 +1,83 @@
+[gd_scene load_steps=29 format=2]
+
+[ext_resource path="res://images/card_backs/back_2.png" type="Texture" id=1]
+[ext_resource path="res://images/card_backs/back_3.png" type="Texture" id=2]
+[ext_resource path="res://images/card_values/value_2.png" type="Texture" id=3]
+[ext_resource path="res://images/card_backs/back_4.png" type="Texture" id=4]
+[ext_resource path="res://images/card_values/value_1.png" type="Texture" id=5]
+[ext_resource path="res://images/card_values/value_0.png" type="Texture" id=6]
+[ext_resource path="res://images/card_backs/back_1.png" type="Texture" id=7]
+[ext_resource path="res://images/card_backs/back_0.png" type="Texture" id=8]
+[ext_resource path="res://images/card_symbols/symbol_1.png" type="Texture" id=9]
+[ext_resource path="res://images/card_symbols/symbol_2.png" type="Texture" id=10]
+[ext_resource path="res://images/card_symbols/symbol_0.png" type="Texture" id=11]
+[ext_resource path="res://images/card_symbols/symbol_4.png" type="Texture" id=12]
+[ext_resource path="res://images/card_values/value_3.png" type="Texture" id=13]
+[ext_resource path="res://images/card_values/value_4.png" type="Texture" id=14]
+[ext_resource path="res://images/card_values/value_5.png" type="Texture" id=15]
+[ext_resource path="res://images/card_values/value_6.png" type="Texture" id=16]
+[ext_resource path="res://images/card_values/value_7.png" type="Texture" id=17]
+[ext_resource path="res://images/card_values/value_8.png" type="Texture" id=18]
+[ext_resource path="res://images/card_values/value_9.png" type="Texture" id=19]
+[ext_resource path="res://images/card_symbols/symbol_3.png" type="Texture" id=20]
+[ext_resource path="res://images/card_clock/factory_clock_0.png" type="Texture" id=21]
+[ext_resource path="res://images/card_clock/factory_clock_1.png" type="Texture" id=22]
+[ext_resource path="res://images/card_clock/factory_clock_2.png" type="Texture" id=23]
+[ext_resource path="res://card.gd" type="Script" id=24]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 8 ), ExtResource( 7 ), ExtResource( 1 ), ExtResource( 2 ), ExtResource( 4 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="SpriteFrames" id=2]
+animations = [ {
+"frames": [ ExtResource( 6 ), ExtResource( 5 ), ExtResource( 3 ), ExtResource( 13 ), ExtResource( 14 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ), ExtResource( 18 ), ExtResource( 19 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="SpriteFrames" id=3]
+animations = [ {
+"frames": [ ExtResource( 11 ), ExtResource( 9 ), ExtResource( 10 ), ExtResource( 12 ), ExtResource( 20 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="SpriteFrames" id=4]
+animations = [ {
+"frames": [ ExtResource( 23 ), ExtResource( 22 ), ExtResource( 21 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[node name="Card" type="AnimatedSprite"]
+use_parent_material = true
+frames = SubResource( 1 )
+centered = false
+script = ExtResource( 24 )
+
+[node name="Value" type="AnimatedSprite" parent="."]
+use_parent_material = true
+position = Vector2( 1, 1 )
+frames = SubResource( 2 )
+frame = 1
+centered = false
+
+[node name="Symbol" type="AnimatedSprite" parent="."]
+use_parent_material = true
+position = Vector2( 3, 11 )
+frames = SubResource( 3 )
+centered = false
+
+[node name="Clock" type="AnimatedSprite" parent="."]
+use_parent_material = true
+position = Vector2( 25, 1 )
+frames = SubResource( 4 )
+centered = false

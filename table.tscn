@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://table.gd" type="Script" id=1]
+[ext_resource path="res://card.tscn" type="PackedScene" id=2]
+[ext_resource path="res://images/table/highlight.png" type="Texture" id=3]
+[ext_resource path="res://images/table/shadow.png" type="Texture" id=4]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+vec4 texturePointSmooth(sampler2D tex, vec2 uv) {
+	vec2 size = vec2(textureSize(tex, 0));
+	vec2 pixel = vec2(1.0) / size;
+	uv -= pixel * vec2(0.5);
+	vec2 uv_pixels = uv * size;
+	vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
+	vec2 ddxy = fwidth(uv_pixels);
+	vec2 mip = log2(ddxy) - 0.5;
+	return textureLod(tex, uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
+}
+
+void fragment() {
+	vec4 Texture = texturePointSmooth(TEXTURE, UV);
+	COLOR = Texture.rgba;
+}"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+
+[node name="table" type="ColorRect"]
+material = SubResource( 2 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -93.0
+rect_min_size = Vector2( 160, 220 )
+rect_pivot_offset = Vector2( -208.894, 424.051 )
+color = Color( 0.298039, 0.298039, 0.298039, 0 )
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+Card = ExtResource( 2 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="highlight" type="Sprite" parent="."]
+use_parent_material = true
+z_index = 6
+texture = ExtResource( 3 )
+centered = false
+offset = Vector2( -1, -1 )
+
+[node name="shadow" type="Sprite" parent="."]
+use_parent_material = true
+texture = ExtResource( 4 )
+centered = false
+offset = Vector2( -4, -4 )
+[connection signal="gui_input" from="." to="." method="_on_table_gui_input"]
+[connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
