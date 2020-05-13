@@ -34,7 +34,6 @@ anchor_bottom = 1.0
 margin_bottom = -93.0
 rect_min_size = Vector2( 160, 220 )
 rect_pivot_offset = Vector2( -208.894, 424.051 )
-color = Color( 0.298039, 0.298039, 0.298039, 0 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -51,9 +50,9 @@ centered = false
 offset = Vector2( -1, -1 )
 
 [node name="shadow" type="Sprite" parent="."]
+visible = false
 use_parent_material = true
 texture = ExtResource( 4 )
 centered = false
 offset = Vector2( -4, -4 )
 [connection signal="gui_input" from="." to="." method="_on_table_gui_input"]
-[connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
