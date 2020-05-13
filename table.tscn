@@ -28,6 +28,7 @@ void fragment() {
 shader = SubResource( 1 )
 
 [node name="table" type="ColorRect"]
+self_modulate = Color( 1, 1, 1, 0 )
 material = SubResource( 2 )
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -44,7 +45,7 @@ Card = ExtResource( 2 )
 
 [node name="highlight" type="Sprite" parent="."]
 use_parent_material = true
-z_index = 6
+z_index = 100
 texture = ExtResource( 3 )
 centered = false
 offset = Vector2( -1, -1 )

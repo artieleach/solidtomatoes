@@ -60,21 +60,36 @@ func _process(_delta):
 	mouse_pos = get_local_mouse_position() / card_size
 	if held_card:
 		held_card.position = lerp(held_card.position, get_local_mouse_position() - card_size / 2, 0.025)
+		
 		var held_card_hover_position = Vector2(
 			clamp(int((held_card.position.x + card_size.x / 2) / card_size.x), 0, table_size.x - 1),
 			clamp(int((held_card.position.y + card_size.y / 2) / card_size.y), 0, table_size.y - 1))
-		$highlight.visible = held_card.table_position != held_card_hover_position and held_card_hover_position in held_card.possible_moves
-		$highlight.position = held_card_hover_position * card_size
+		if held_card.table_position == held_card_hover_position:
+			$highlight.position = held_card.position
+			$highlight.visible = false
+		else:
+			$highlight.scale = Vector2(1, 1)
+			if held_card_hover_position in held_card.possible_moves:
+				$highlight.visible = true
+				$highlight.position = lerp($highlight.position, held_card_hover_position * card_size, 0.05)
+			else:
+				$highlight.visible = false
+				$highlight.position = held_card.position
+			$highlight.z_index = held_card_hover_position.y + 1
 		$shadow.position = held_card.position
 	else:
 		if 0 < mouse_pos.x and mouse_pos.x < table_size.x and 0 < mouse_pos.y and mouse_pos.y < table_size.y:
 			if [card_positions[mouse_pos.x][mouse_pos.y]] != [[]]:
-				if card_positions[mouse_pos.x][mouse_pos.y].symbol != FACTORY:
-					$highlight.visible = true
+				$highlight.visible = card_positions[mouse_pos.x][mouse_pos.y].symbol != FACTORY
 				if get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Timer").time_left == 0.0:
 					get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Symbol").playing = true
 					get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Timer").start()
-			$highlight.position = mouse_pos.floor() * card_size
+			$highlight.z_index = 8
+			$highlight.scale = Vector2(1, 1)
+			if $highlight.position.distance_to(mouse_pos.floor() * card_size) < 50:
+				$highlight.position = lerp($highlight.position, mouse_pos.floor() * card_size, 0.05)
+			else:
+				$highlight.position = mouse_pos.floor() * card_size
 		else:
 			$highlight.visible = false
 
@@ -226,12 +241,13 @@ func grab_card(card):
 		current_neighbors = get_neighbors(card)[1]
 		for neighbor in current_neighbors:
 			if neighbor[1].table_position in card.possible_moves:
-				$Tween.interpolate_property(neighbor[1], "self_modulate", neighbor[1].self_modulate, Color(1.2, 1.2, 1.2), 0.2, Tween.TRANS_QUART, Tween.EASE_OUT)
+				$Tween.interpolate_property(neighbor[1], "self_modulate", neighbor[1].self_modulate, Color(1.2, 1.2, 1.2), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
+				get_node(neighbor[1].card_path + "Symbol").playing = true
 		card_positions[card.table_position.x][card.table_position.y] = []
-		card.z_index = 100
+		card.z_index = 8
 		held_card = card
 		$shadow.visible = true
-		$shadow.z_index = 99
+		$shadow.z_index = 7
 		$Tween.start()
 
 func drop_card(card):
@@ -245,6 +261,7 @@ func drop_card(card):
 		current_neighbors = get_neighbors(held_card, held_card.last_position)[1]
 		for neighbor in current_neighbors:
 			$Tween.interpolate_property(neighbor[1], "self_modulate", neighbor[1].self_modulate, Color(1, 1, 1), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
+			
 			neighbor[1].self_modulate = 0
 		$Tween.start()
 		held_card.table_position = Vector2(
