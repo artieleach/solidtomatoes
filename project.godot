@@ -23,8 +23,8 @@ config/icon="res://icon.png"
 
 window/size/width=176
 window/size/height=312
-window/size/test_width=528
-window/size/test_height=936
+window/size/test_width=440
+window/size/test_height=780
 window/vsync/use_vsync=false
 window/energy_saving/keep_screen_on=false
 window/handheld/orientation="portrait"
@@ -37,4 +37,5 @@ common/enable_object_picking=false
 
 [rendering]
 
+quality/2d/use_pixel_snap=true
 environment/default_environment="res://default_env.tres"

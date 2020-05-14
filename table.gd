@@ -49,7 +49,7 @@ func _ready():
 	deck.shuffle()
 	for x in range(table_size.x):
 		card_positions.append([])
-		for y in range(table_size.y):
+		for _y in range(table_size.y):
 			card_positions[x].append([])
 	load_game()
 	calculate_possible_moves()
@@ -60,36 +60,22 @@ func _process(_delta):
 	mouse_pos = get_local_mouse_position() / card_size
 	if held_card:
 		held_card.position = lerp(held_card.position, get_local_mouse_position() - card_size / 2, 0.025)
-		
 		var held_card_hover_position = Vector2(
 			clamp(int((held_card.position.x + card_size.x / 2) / card_size.x), 0, table_size.x - 1),
 			clamp(int((held_card.position.y + card_size.y / 2) / card_size.y), 0, table_size.y - 1))
-		if held_card.table_position == held_card_hover_position:
-			$highlight.position = held_card.position
-			$highlight.visible = false
-		else:
-			$highlight.scale = Vector2(1, 1)
-			if held_card_hover_position in held_card.possible_moves:
-				$highlight.visible = true
-				$highlight.position = lerp($highlight.position, held_card_hover_position * card_size, 0.05)
-			else:
-				$highlight.visible = false
-				$highlight.position = held_card.position
-			$highlight.z_index = held_card_hover_position.y + 1
+		$highlight.visible = held_card_hover_position in held_card.possible_moves
+		$highlight.position = held_card_hover_position * card_size
 		$shadow.position = held_card.position
 	else:
 		if 0 < mouse_pos.x and mouse_pos.x < table_size.x and 0 < mouse_pos.y and mouse_pos.y < table_size.y:
 			if [card_positions[mouse_pos.x][mouse_pos.y]] != [[]]:
 				$highlight.visible = card_positions[mouse_pos.x][mouse_pos.y].symbol != FACTORY
-				if get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Timer").time_left == 0.0:
+				if card_positions[mouse_pos.x][mouse_pos.y].can_shine and card_positions[mouse_pos.x][mouse_pos.y].possible_moves:
 					get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Symbol").playing = true
 					get_node(card_positions[mouse_pos.x][mouse_pos.y].card_path + "Timer").start()
-			$highlight.z_index = 8
-			$highlight.scale = Vector2(1, 1)
-			if $highlight.position.distance_to(mouse_pos.floor() * card_size) < 50:
-				$highlight.position = lerp($highlight.position, mouse_pos.floor() * card_size, 0.05)
 			else:
-				$highlight.position = mouse_pos.floor() * card_size
+				$highlight.visible = false
+			$highlight.position = mouse_pos.floor() * card_size
 		else:
 			$highlight.visible = false
 
@@ -189,25 +175,27 @@ func calculate_possible_moves():
 		for card in row:
 			if card:
 				update_card(card)
-				var cur_neighborhood = get_neighbors(card)
+				var cur_neighborhood = get_neighbors(card)[0]
 				card.possible_moves = []
-				for neighbor in cur_neighborhood[1]:
-					var cur_n_symbol = neighbor[1].symbol
-					match card.symbol:
-						cur_n_symbol:
-							card.possible_moves.append(neighbor[1].table_position)
-						SPIRAL:
-							card.possible_moves.append(neighbor[1].table_position)
-						CIRCLE:
-							if neighbor[1].symbol != FACTORY:
+				for neighbor in cur_neighborhood:
+					if neighbor[1]:
+						var cur_n_symbol = neighbor[1].symbol
+						match card.symbol:
+							cur_n_symbol:
 								card.possible_moves.append(neighbor[1].table_position)
-						VECTOR:
-							if neighbor[1].value < card.value and neighbor[1].symbol != FACTORY:
+							SPIRAL:
 								card.possible_moves.append(neighbor[1].table_position)
-						POWER_UP:
-							if neighbor[1].symbol != FACTORY:
-								card.possible_moves.append(neighbor[1].table_position)
-
+							CIRCLE:
+								if neighbor[1].symbol != FACTORY:
+									card.possible_moves.append(neighbor[1].table_position)
+							VECTOR:
+								if neighbor[1].value < card.value and neighbor[1].symbol != FACTORY:
+									card.possible_moves.append(neighbor[1].table_position)
+							POWER_UP:
+								if neighbor[1].symbol != FACTORY:
+									card.possible_moves.append(neighbor[1].table_position)
+					else:
+						card.possible_moves.append(neighbor[0])
 func get_neighbors(card, spot:=Vector2(0, 0)) -> Array:
 	if spot == Vector2(0, 0):
 		spot = card.table_position
@@ -236,33 +224,36 @@ func grab_card(card):
 	save_game()
 	calculate_possible_moves()
 	if card.symbol != FACTORY and card.pickable:
+		# damn are you a tween? because i want you inbetween a bed frames
 		$Tween.interpolate_property(card, "offset", card.offset, Vector2(-1, -6), 0.15, Tween.TRANS_CIRC, Tween.EASE_OUT)
 		$Tween.interpolate_property(card, "scale", card.scale, Vector2(1.05, 1.05), 0.2, Tween.TRANS_LINEAR)
+		$shadow.visible = true
+		$highlight.z_index = card.z_index - 1
 		current_neighbors = get_neighbors(card)[1]
 		for neighbor in current_neighbors:
 			if neighbor[1].table_position in card.possible_moves:
-				$Tween.interpolate_property(neighbor[1], "self_modulate", neighbor[1].self_modulate, Color(1.2, 1.2, 1.2), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
+				$Tween.interpolate_property(neighbor[1], "modulate", neighbor[1].modulate, Color(1.1, 1.1, 1.1), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
 				get_node(neighbor[1].card_path + "Symbol").playing = true
 		card_positions[card.table_position.x][card.table_position.y] = []
 		card.z_index = 8
 		held_card = card
-		$shadow.visible = true
-		$shadow.z_index = 7
 		$Tween.start()
 
 func drop_card(card):
+	#oo pretty stuff
 	$highlight.visible = true
+	$highlight.z_index = 8
 	$shadow.visible = false
-	var turn_is_valid = false
 	$Tween.interpolate_property(card, "offset", card.offset, Vector2(0, 0), 0.15, Tween.TRANS_CIRC, Tween.EASE_OUT)
 	$Tween.interpolate_property(card, "scale", card.scale, Vector2(1, 1), 0.2, Tween.TRANS_LINEAR)
 	$Tween.interpolate_callback(card, 0.14, 'thump_particles')
+	# alright back to business
+	var turn_is_valid = false
 	if held_card and held_card == card:
 		current_neighbors = get_neighbors(held_card, held_card.last_position)[1]
 		for neighbor in current_neighbors:
-			$Tween.interpolate_property(neighbor[1], "self_modulate", neighbor[1].self_modulate, Color(1, 1, 1), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
-			
-			neighbor[1].self_modulate = 0
+			$Tween.interpolate_property(neighbor[1], "modulate", neighbor[1].modulate, Color(1, 1, 1), 0.15, Tween.TRANS_QUART, Tween.EASE_OUT)
+			neighbor[1].modulate = 0
 		$Tween.start()
 		held_card.table_position = Vector2(
 			clamp(int((held_card.position.x + card_size.x / 2) / card_size.x), 0, table_size.x - 1), 
@@ -295,7 +286,8 @@ func drop_card(card):
 					if card and card.symbol == FACTORY:
 						get_node(card.card_path + "Clock").frame = (turn_counter+card.turn_created) % 3
 						if true: # turn_counter > (card.turn_created + 1) and (turn_counter + card.turn_created) % 3 == 0:
-							factory_take_turn(card)
+							pass
+							#factory_take_turn(card)
 
 func factory_take_turn(card):
 	var factory_neighbors = get_neighbors(card)[0]
@@ -450,7 +442,7 @@ func card_death(card):
 	card.pickable = false
 	var diff = abs(get_node(card.card_path + "Value").frame - card.value)
 	$Tween.interpolate_property(get_node(card.card_path + "Value"), "frame", get_node(card.card_path + "Value").frame, card.value, 0.05 * diff)
-	$Tween.interpolate_callback(card, 0.14, 'thump_particles', 100, true)
+	$Tween.interpolate_callback(card, 0.14, 'thump_particles', 100)
 	$Tween.interpolate_callback(card, 0.05 * (diff) + 0.14, "queue_free")
 	$Tween.start()
 
@@ -474,4 +466,8 @@ func _on_table_gui_input(event):
 							card.value = 0
 							update_card(card)
 				draw_from_deck(25)
+
+func _on_table_mouse_exited():
+	if held_card:
+		drop_card(held_card)
 
